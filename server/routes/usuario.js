@@ -1,12 +1,14 @@
 const express = require('express');
 const app = express();
 const Usuario = require('../models/usuario')
+const {verificaToken,verificaAdminRole}=  require('../middlewares/autenticacion');
 
 const bcrypt = require('bcrypt');
 const _= require('underscore');
 
 
-app.get('/usuarios',(req,res)=>{
+app.get('/usuarios',verificaToken,(req,res)=>{
+
     // los parametros opcionales caen en el objeto query
     // desde un numero de reistro
     let desde = req.query.desde || 0;
@@ -38,7 +40,7 @@ app.get('/usuarios',(req,res)=>{
     })
 })
 
-app.post('/usuarios',(req,res)=>{
+app.post('/usuarios',[verificaToken,verificaAdminRole],(req,res)=>{
 
     let body = req.body;
 
@@ -72,7 +74,7 @@ app.post('/usuarios',(req,res)=>{
 
 })
 
-app.put('/usuarios/:id',(req,res)=>{
+app.put('/usuarios/:id',[verificaToken,verificaAdminRole],(req,res)=>{
 
     let id = req.params.id;
     // solo obtenemos del body lo que queremos y permitimos actualizar
@@ -102,13 +104,13 @@ app.put('/usuarios/:id',(req,res)=>{
     })
 })
 
-app.delete('/usuarios/:id',(req,res)=>{
+app.delete('/usuarios/:id',[verificaToken,verificaAdminRole],(req,res)=>{
     let id= req.params.id;
     let estadoUsuario={
         estado:false
     }
 
-    Usuario.findByIdAndUpdate(id,estadoUsuario,(err,usuarioBorrado)=>{
+    Usuario.findByIdAndUpdate(id,estadoUsuario,{new:true},(err,usuarioBorrado)=>{
         if(err){
             return res.status(400).json({
                 ok:false,
